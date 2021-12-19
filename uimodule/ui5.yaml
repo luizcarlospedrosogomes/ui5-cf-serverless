@@ -27,7 +27,9 @@ server:
         debug: true
         port: 1091
         xsappJson: uimodule/webapp/xs-app.json
-        destinations: []
+        destinations: 
+          - name: "backend"
+            url: "https://services.odata.org/TripPinRESTierService/(S(jxvew2p4e02ldx1ou4rjxcv1))/"
 builder:
   customTasks:
     -  name: ui5-task-zipper

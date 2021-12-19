@@ -1,65 +1,84 @@
+_schema-version: "3.2"
 ID: ui5serverless
-_schema-version: 3.2.0
-version: 0.0.1
-parameters:
-  enable-parallel-deployments: true
+version: 1.0.0
+
+build-parameters:
+  before-all:
+    - builder: custom
+      commands:
+        - npm install
+
 modules:
-  - name: ui5serverless
-    type: nodejs
-    path: approuter
-    parameters:
-      disk-quota: 512M
-      memory: 512M
-    requires:
-      - name: ui5serverless_destination
-      - name: ui5serverless_html5_repo_runtime
-      - name: ui5serverless_uaa
-  - name: webapp_deployer
+  - name: ui5serverless-destination-content
     type: com.sap.application.content
-    path: deployer
     requires:
-      - name: ui5serverless_html5_repo_host
+      - name: ui5serverless_uaa
+        parameters:
+          service-key:
+            name: ui5serverless_uaa-key
+      - name: ui5serverless_html_repo_host
+        parameters:
+          service-key:
+            name: ui5serverless_html_repo_host-key
+      - name: ui5serverless-destination-service
+        parameters:
+          content-target: true
+    parameters:
+      content:
+        instance:
+          destinations:
+            - Name: ui5serverless_html_repo_host
+              ServiceInstanceName: ui5serverless_html_repo_host
+              ServiceKeyName: ui5serverless_html_repo_host-key
+              sap.cloud.service: basic.service
+            - Authentication: OAuth2UserTokenExchange
+              Name: my_service_uaa_ui5serverless
+              ServiceInstanceName: ui5serverless_uaa
+              ServiceKeyName: uaa_ui5serverless-key
+              sap.cloud.service: basic.service
+          existing_destinations_policy: update
+    build-parameters:
+      no-source: true
+  - name: ui5serverless_ui_deployer
+    type: com.sap.application.content
+    path: .
+    requires:
+      - name: ui5serverless_html_repo_host
         parameters:
           content-target: true
     build-parameters:
       build-result: resources
       requires:
-        - name: uimodule
-          artifacts:
-            - dist/uimodule.zip
+        - artifacts:
+            - HTML5Module-content.zip
+          name: HTML5Module
           target-path: resources/
-  - name: uimodule
+  - name: HTML5Module
     type: html5
-    path: uimodule
+    path: HTML5Module
     build-parameters:
       builder: custom
       commands:
-        - npm run build:uimodule --prefix ..
+        - npm run build
       supported-platforms: []
 resources:
-  - name: ui5serverless_destination
+  - name: ui5serverless-destination-service
     type: org.cloudfoundry.managed-service
     parameters:
-      service-plan: lite
       service: destination
+      service-name: ui5serverless-destination-service
+      service-plan: lite
       config:
         HTML5Runtime_enabled: true
         version: 1.0.0
-  - name: ui5serverless_html5_repo_host
+  - name: ui5serverless_html_repo_host
     type: org.cloudfoundry.managed-service
     parameters:
+      service: html5-apps-repo
       service-plan: app-host
-      service: html5-apps-repo
-      config:
-        sizeLimit: 2
-  - name: ui5serverless_html5_repo_runtime
-    type: org.cloudfoundry.managed-service
-    parameters:
-      service-plan: app-runtime
-      service: html5-apps-repo
   - name: ui5serverless_uaa
     type: org.cloudfoundry.managed-service
     parameters:
       path: ./xs-security.json
-      service-plan: application
       service: xsuaa
+      service-plan: application

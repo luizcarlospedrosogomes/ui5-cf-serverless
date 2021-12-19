@@ -1,5 +1,5 @@
 {
-  "xsappname": "ui5serverless",
+  "xsappname": "ui5serverless-new",
   "tenant-mode": "dedicated",
   "description": "Security profile of called application",
   "scopes": [
