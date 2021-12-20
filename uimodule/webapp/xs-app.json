@@ -9,6 +9,18 @@
       "destination": "backend"
     },
     {
+      "source": "/srv-api/(.*)$",
+      "csrfProtection": false,
+      "target": "$1",
+      "authenticationType": "none",
+      "destination": "srv-api"
+    },
+    {
+      "source": "^/user-api(.*)",
+      "target": "$1",
+      "service": "sap-approuter-userapi"
+    },
+    {
       "source": "^(.*)",
       "target": "$1",
       "authenticationType": "xsuaa",

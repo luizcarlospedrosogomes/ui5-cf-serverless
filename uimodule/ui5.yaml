@@ -30,6 +30,9 @@ server:
         destinations: 
           - name: "backend"
             url: "https://services.odata.org/TripPinRESTierService/(S(jxvew2p4e02ldx1ou4rjxcv1))/"
+          - name: "srv-api"
+            url: "https://cf-api-trial-restless-numbat-ay.cfapps.us10.hana.ondemand.com/"
+            forwardAuthToken: true
 builder:
   customTasks:
     -  name: ui5-task-zipper

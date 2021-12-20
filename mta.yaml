@@ -12,10 +12,10 @@ modules:
   - name: ui5serverless-destination-content
     type: com.sap.application.content
     requires:
-      - name: ui5serverless_uaa
+      - name: teste_xsuaa
         parameters:
           service-key:
-            name: ui5serverless_uaa-key
+            name: teste_xsuaa-key
       - name: ui5serverless_html_repo_host
         parameters:
           service-key:
@@ -31,10 +31,10 @@ modules:
               ServiceInstanceName: ui5serverless_html_repo_host
               ServiceKeyName: ui5serverless_html_repo_host-key
               sap.cloud.service: basic.service
-            - Authentication: OAuth2UserTokenExchange
-              Name: my_service_uaa_ui5serverless
-              ServiceInstanceName: ui5serverless_uaa
-              ServiceKeyName: uaa_ui5serverless-key
+            - Name: teste_xsuaa-uaa
+              Authentication: OAuth2UserTokenExchange              
+              ServiceInstanceName: teste-xsuaa
+              ServiceKeyName: teste-xsuaa-key
               sap.cloud.service: basic.service
           existing_destinations_policy: update
     build-parameters:
@@ -76,9 +76,7 @@ resources:
     parameters:
       service: html5-apps-repo
       service-plan: app-host
-  - name: ui5serverless_uaa
-    type: org.cloudfoundry.managed-service
+  - name: teste_xsuaa
+    type: org.cloudfoundry.existing-service
     parameters:
-      path: ./xs-security.json
-      service: xsuaa
-      service-plan: application
+      service-name: teste-xsuaa
