@@ -1,49 +1,15 @@
-_schema-version: "3.2"
 ID: ui5serverless
+_schema-version: '3.2'
 version: 1.0.0
-
-build-parameters:
-  before-all:
-    - builder: custom
-      commands:
-        - npm install
+parameters:
+  enable-parallel-deployments: true
 
 modules:
-  - name: ui5serverless-destination-content
-    type: com.sap.application.content
-    requires:
-      - name: teste_xsuaa
-        parameters:
-          service-key:
-            name: teste_xsuaa-key
-      - name: ui5serverless_html_repo_host
-        parameters:
-          service-key:
-            name: ui5serverless_html_repo_host-key
-      - name: ui5serverless-destination-service
-        parameters:
-          content-target: true
-    parameters:
-      content:
-        instance:
-          destinations:
-            - Name: ui5serverless_html_repo_host
-              ServiceInstanceName: ui5serverless_html_repo_host
-              ServiceKeyName: ui5serverless_html_repo_host-key
-              sap.cloud.service: basic.service
-            - Name: teste_xsuaa-uaa
-              Authentication: OAuth2UserTokenExchange              
-              ServiceInstanceName: teste-xsuaa
-              ServiceKeyName: teste-xsuaa-key
-              sap.cloud.service: basic.service
-          existing_destinations_policy: update
-    build-parameters:
-      no-source: true
-  - name: ui5serverless_ui_deployer
+  - name: ui5serverless-deployer
     type: com.sap.application.content
     path: .
     requires:
-      - name: ui5serverless_html_repo_host
+      - name: ui5serverless-repo-host
         parameters:
           content-target: true
     build-parameters:
@@ -51,32 +17,97 @@ modules:
       requires:
         - artifacts:
             - HTML5Module-content.zip
-          name: HTML5Module
+          name: ui5serverless-HTML5Module
           target-path: resources/
-  - name: HTML5Module
+
+  - name: ui5serverless-HTML5Module
     type: html5
     path: HTML5Module
     build-parameters:
       builder: custom
       commands:
+        - npm i
         - npm run build
       supported-platforms: []
+  - name: ui5serverless-destination-content
+    type: com.sap.application.content
+    requires:
+    - name: teste-xsuaa
+      parameters:
+        service-key:
+          name: teste-xsuaa-key
+    - name: ui5serverless-repo-host
+      parameters:
+        service-key:
+          name: ui5serverless-repo-host-key
+    - name: teste-xsuaa-apiaccess
+      parameters:
+        service-key:
+          name: teste-xsuaa-apiaccess-key
+    - name: ui5serverless-destination-service
+      parameters:
+        content-target: true
+    - name: ui5serverless-connectivity-service
+    parameters:
+      content:
+        subaccount:
+          destinations:
+          - Name: ui5serverless-repo-host
+            ServiceInstanceName: ui5serverless-repo-host
+            ServiceKeyName: ui5serverless-repo-host-key
+            sap.cloud.service: cloud.service
+          - Authentication: OAuth2UserTokenExchange
+            Name: teste-xsuaa
+            ServiceInstanceName: teste-xsuaa
+            ServiceKeyName: teste-xsuaa-key
+            sap.cloud.service: cloud.service
+          - Authentication: OAuth2ClientCredentials
+            Name: teste-xsuaa-apiaccess
+            ServiceInstanceName: teste-xsuaa-apiaccess
+            ServiceKeyName: teste-xsuaa-apiaccess-key
+          existing_destinations_policy: update
+    build-parameters:
+      no-source: true
+
 resources:
+  - name: teste-xsuaa
+    type: org.cloudfoundry.existing-service
+    parameters:
+      service-name: teste-xsuaa
+  - name: teste-xsuaa-apiaccess
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service-plan: apiaccess
+      service: xsuaa
   - name: ui5serverless-destination-service
     type: org.cloudfoundry.managed-service
     parameters:
-      service: destination
-      service-name: ui5serverless-destination-service
       service-plan: lite
+      service: destination
       config:
-        HTML5Runtime_enabled: true
-        version: 1.0.0
-  - name: ui5serverless_html_repo_host
+        init_data:
+          subaccount:
+            existing_destinations_policy: update
+            destinations:
+              - Name: ui5serverless-srv
+                Description: ui5serverless NodeJS backend service
+                Authentication: NoAuthentication
+                ProxyType: Internet
+                HTML5.DynamicDestination: true
+                HTML5.ForwardAuthToken: true
+    
+  - name: ui5serverless-connectivity-service
+    parameters:
+      service-plan: lite
+      service: connectivity
+    type: org.cloudfoundry.managed-service
+  - name: ui5serverless-repo-host
     type: org.cloudfoundry.managed-service
     parameters:
       service: html5-apps-repo
       service-plan: app-host
-  - name: teste_xsuaa
-    type: org.cloudfoundry.existing-service
+  - name: ui5serverless-repo-runtime
+    type: org.cloudfoundry.managed-service
     parameters:
-      service-name: teste-xsuaa
+      service-plan: app-runtime
+      service: html5-apps-repo
